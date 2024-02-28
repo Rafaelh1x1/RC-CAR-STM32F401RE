@@ -554,7 +554,7 @@ void motorDriverTask(void *argument)
 {
   /* USER CODE BEGIN motorDriverTask */
 	uint16_t readValue;
-	  int speedA, speedB, speedC, speedD;
+	  int speedA;
 
 	  HAL_ADC_Start(&hadc1); // Start ADC conversion
 	  // Start PWM for all motors, assuming they are linked to different channels.
@@ -579,64 +579,39 @@ void motorDriverTask(void *argument)
 	            // Set Motor A backward
 	            HAL_GPIO_WritePin(GPIOA, GPIO_PIN_5, 0);
 	            HAL_GPIO_WritePin(GPIOA, GPIO_PIN_6, 1);
+
+	            HAL_GPIO_WritePin(GPIOA, GPIO_PIN_7, GPIO_PIN_SET);
+	            HAL_GPIO_WritePin(GPIOB, GPIO_PIN_6, GPIO_PIN_RESET);
 	            speedA = (1790 - readValue) * (-1) / 3;
 	        } else if (readValue > 2220) {
 	            // Set Motor A forward
 	            HAL_GPIO_WritePin(GPIOA, GPIO_PIN_6, 0);
 	            HAL_GPIO_WritePin(GPIOA, GPIO_PIN_5, 1);
+
+	            HAL_GPIO_WritePin(GPIOB, GPIO_PIN_6, GPIO_PIN_SET);
+	            HAL_GPIO_WritePin(GPIOA, GPIO_PIN_7, GPIO_PIN_RESET);
+
 	            speedA = (readValue - 2220) / 3;
 	        } else {
 	            // Stop Motor A
 	            speedA = 0;
 	        }
 
-	        // Logic for Motor B
-	        if (readValue < 1790) {
-	            // Set Motor B backward
-	            HAL_GPIO_WritePin(GPIOA, GPIO_PIN_7, GPIO_PIN_SET);
-	            HAL_GPIO_WritePin(GPIOB, GPIO_PIN_6, GPIO_PIN_RESET);
-	            speedB = (1790 - readValue) / 3;
-	        } else if (readValue > 2220) {
-	            // Set Motor B forward
-	            HAL_GPIO_WritePin(GPIOB, GPIO_PIN_6, GPIO_PIN_SET);
-	            HAL_GPIO_WritePin(GPIOA, GPIO_PIN_7, GPIO_PIN_RESET);
-	            speedB = (readValue - 2220) / 3;
-	        } else {
-	            // Stop Motor B
-	            speedB = 0;
-	        }
-
-	        // Logic for Motor C
-	        if (readValue < 1790) {
-	            // Set Motor C backward
-	            HAL_GPIO_WritePin(GPIOB, GPIO_PIN_10, GPIO_PIN_SET);
-	            HAL_GPIO_WritePin(GPIOB, GPIO_PIN_4, GPIO_PIN_RESET);
-	            speedC = (1790 - readValue) / 3;
-	        } else if (readValue > 2220) {
-	            // Set Motor C forward
-	            HAL_GPIO_WritePin(GPIOB, GPIO_PIN_4, GPIO_PIN_SET);
-	            HAL_GPIO_WritePin(GPIOB, GPIO_PIN_10, GPIO_PIN_RESET);
-	            speedC = (readValue - 2220) / 3;
-	        } else {
-	            // Stop Motor C
-	            speedC = 0;
-	        }
-
-	        // Logic for Motor D
-	        if (readValue < 1790) {
-	            // Set Motor D backward
-	            HAL_GPIO_WritePin(GPIOB, GPIO_PIN_5, GPIO_PIN_SET);
-	            HAL_GPIO_WritePin(GPIOB, GPIO_PIN_3, GPIO_PIN_RESET);
-	            speedD = (1790 - readValue) / 3;
-	        } else if (readValue > 2220) {
-	            // Set Motor D forward
-	            HAL_GPIO_WritePin(GPIOB, GPIO_PIN_3, GPIO_PIN_SET);
-	            HAL_GPIO_WritePin(GPIOB, GPIO_PIN_5, GPIO_PIN_RESET);
-	            speedD = (readValue - 2220) / 3;
-	        } else {
-	            // Stop Motor D
-	            speedD = 0;
-	        }
+//	        // Logic for Motor B
+//	        if (readValue < 1790) {
+//	            // Set Motor B backward
+//	            HAL_GPIO_WritePin(GPIOA, GPIO_PIN_7, GPIO_PIN_SET);
+//	            HAL_GPIO_WritePin(GPIOB, GPIO_PIN_6, GPIO_PIN_RESET);
+//	            speedB = (1790 - readValue) / 3;
+//	        } else if (readValue > 2220) {
+//	            // Set Motor B forward
+//	            HAL_GPIO_WritePin(GPIOB, GPIO_PIN_6, GPIO_PIN_SET);
+//	            HAL_GPIO_WritePin(GPIOA, GPIO_PIN_7, GPIO_PIN_RESET);
+//	            speedB = (readValue - 2220) / 3;
+//	        } else {
+//	            // Stop Motor B
+//	            speedB = 0;
+//	        }
 
 	        // Update PWM duty cycle for all motors
 	        __HAL_TIM_SET_COMPARE(&htim3, TIM_CHANNEL_3, speedA); // Update for Motor A
