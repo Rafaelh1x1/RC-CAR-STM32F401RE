@@ -43,6 +43,7 @@
 /* Private variables ---------------------------------------------------------*/
 ADC_HandleTypeDef hadc1;
 
+TIM_HandleTypeDef htim1;
 TIM_HandleTypeDef htim2;
 TIM_HandleTypeDef htim3;
 TIM_HandleTypeDef htim4;
@@ -76,8 +77,9 @@ const osThreadAttr_t rfsignaltask_attributes = {
 void SystemClock_Config(void);
 static void MX_GPIO_Init(void);
 static void MX_ADC1_Init(void);
-static void MX_TIM2_Init(void);
 static void MX_TIM3_Init(void);
+static void MX_TIM1_Init(void);
+static void MX_TIM2_Init(void);
 static void MX_TIM4_Init(void);
 void servoTask(void *argument);
 void motorDriverTask(void *argument);
@@ -121,8 +123,9 @@ int main(void)
   /* Initialize all configured peripherals */
   MX_GPIO_Init();
   MX_ADC1_Init();
-  MX_TIM2_Init();
   MX_TIM3_Init();
+  MX_TIM1_Init();
+  MX_TIM2_Init();
   MX_TIM4_Init();
   /* USER CODE BEGIN 2 */
 
@@ -200,7 +203,12 @@ void SystemClock_Config(void)
   RCC_OscInitStruct.OscillatorType = RCC_OSCILLATORTYPE_HSI;
   RCC_OscInitStruct.HSIState = RCC_HSI_ON;
   RCC_OscInitStruct.HSICalibrationValue = RCC_HSICALIBRATION_DEFAULT;
-  RCC_OscInitStruct.PLL.PLLState = RCC_PLL_NONE;
+  RCC_OscInitStruct.PLL.PLLState = RCC_PLL_ON;
+  RCC_OscInitStruct.PLL.PLLSource = RCC_PLLSOURCE_HSI;
+  RCC_OscInitStruct.PLL.PLLM = 8;
+  RCC_OscInitStruct.PLL.PLLN = 64;
+  RCC_OscInitStruct.PLL.PLLP = RCC_PLLP_DIV2;
+  RCC_OscInitStruct.PLL.PLLQ = 4;
   if (HAL_RCC_OscConfig(&RCC_OscInitStruct) != HAL_OK)
   {
     Error_Handler();
@@ -210,9 +218,9 @@ void SystemClock_Config(void)
   */
   RCC_ClkInitStruct.ClockType = RCC_CLOCKTYPE_HCLK|RCC_CLOCKTYPE_SYSCLK
                               |RCC_CLOCKTYPE_PCLK1|RCC_CLOCKTYPE_PCLK2;
-  RCC_ClkInitStruct.SYSCLKSource = RCC_SYSCLKSOURCE_HSI;
-  RCC_ClkInitStruct.AHBCLKDivider = RCC_SYSCLK_DIV1;
-  RCC_ClkInitStruct.APB1CLKDivider = RCC_HCLK_DIV1;
+  RCC_ClkInitStruct.SYSCLKSource = RCC_SYSCLKSOURCE_PLLCLK;
+  RCC_ClkInitStruct.AHBCLKDivider = RCC_SYSCLK_DIV4;
+  RCC_ClkInitStruct.APB1CLKDivider = RCC_HCLK_DIV4;
   RCC_ClkInitStruct.APB2CLKDivider = RCC_HCLK_DIV1;
 
   if (HAL_RCC_ClockConfig(&RCC_ClkInitStruct, FLASH_LATENCY_0) != HAL_OK)
@@ -274,6 +282,52 @@ static void MX_ADC1_Init(void)
 }
 
 /**
+  * @brief TIM1 Initialization Function
+  * @param None
+  * @retval None
+  */
+static void MX_TIM1_Init(void)
+{
+
+  /* USER CODE BEGIN TIM1_Init 0 */
+
+  /* USER CODE END TIM1_Init 0 */
+
+  TIM_ClockConfigTypeDef sClockSourceConfig = {0};
+  TIM_MasterConfigTypeDef sMasterConfig = {0};
+
+  /* USER CODE BEGIN TIM1_Init 1 */
+
+  /* USER CODE END TIM1_Init 1 */
+  htim1.Instance = TIM1;
+  htim1.Init.Prescaler = 1341;
+  htim1.Init.CounterMode = TIM_COUNTERMODE_UP;
+  htim1.Init.Period = 625;
+  htim1.Init.ClockDivision = TIM_CLOCKDIVISION_DIV1;
+  htim1.Init.RepetitionCounter = 0;
+  htim1.Init.AutoReloadPreload = TIM_AUTORELOAD_PRELOAD_DISABLE;
+  if (HAL_TIM_Base_Init(&htim1) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  sClockSourceConfig.ClockSource = TIM_CLOCKSOURCE_INTERNAL;
+  if (HAL_TIM_ConfigClockSource(&htim1, &sClockSourceConfig) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  sMasterConfig.MasterOutputTrigger = TIM_TRGO_RESET;
+  sMasterConfig.MasterSlaveMode = TIM_MASTERSLAVEMODE_DISABLE;
+  if (HAL_TIMEx_MasterConfigSynchronization(&htim1, &sMasterConfig) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  /* USER CODE BEGIN TIM1_Init 2 */
+
+  /* USER CODE END TIM1_Init 2 */
+
+}
+
+/**
   * @brief TIM2 Initialization Function
   * @param None
   * @retval None
@@ -293,7 +347,7 @@ static void MX_TIM2_Init(void)
 
   /* USER CODE END TIM2_Init 1 */
   htim2.Instance = TIM2;
-  htim2.Init.Prescaler = 255;
+  htim2.Init.Prescaler = 127;
   htim2.Init.CounterMode = TIM_COUNTERMODE_UP;
   htim2.Init.Period = 625;
   htim2.Init.ClockDivision = TIM_CLOCKDIVISION_DIV1;
@@ -352,9 +406,9 @@ static void MX_TIM3_Init(void)
 
   /* USER CODE END TIM3_Init 1 */
   htim3.Instance = TIM3;
-  htim3.Init.Prescaler = 255;
+  htim3.Init.Prescaler = 127;
   htim3.Init.CounterMode = TIM_COUNTERMODE_UP;
-  htim3.Init.Period = 625;
+  htim3.Init.Period = 21;
   htim3.Init.ClockDivision = TIM_CLOCKDIVISION_DIV1;
   htim3.Init.AutoReloadPreload = TIM_AUTORELOAD_PRELOAD_DISABLE;
   if (HAL_TIM_Base_Init(&htim3) != HAL_OK)
@@ -415,7 +469,7 @@ static void MX_TIM4_Init(void)
 
   /* USER CODE END TIM4_Init 1 */
   htim4.Instance = TIM4;
-  htim4.Init.Prescaler = 255;
+  htim4.Init.Prescaler = 127;
   htim4.Init.CounterMode = TIM_COUNTERMODE_UP;
   htim4.Init.Period = 625;
   htim4.Init.ClockDivision = TIM_CLOCKDIVISION_DIV1;
@@ -558,8 +612,8 @@ void motorDriverTask(void *argument)
 
 	  HAL_ADC_Start(&hadc1); // Start ADC conversion
 	  // Start PWM for all motors, assuming they are linked to different channels.
-	  HAL_TIM_PWM_Start(&htim3, TIM_CHANNEL_3); // Assuming this controls Motor A
-	  HAL_TIM_PWM_Start(&htim3, TIM_CHANNEL_1); // Assuming this controls Motor B
+	  HAL_TIM_PWM_Start(&htim3, TIM_CHANNEL_1); // Assuming this controls Motor A
+	  HAL_TIM_PWM_Start(&htim3, TIM_CHANNEL_3); // Assuming this controls Motor B
 	  HAL_GPIO_WritePin(GPIOA, GPIO_PIN_5, 0);
 	  HAL_GPIO_WritePin(GPIOA, GPIO_PIN_6, 0);
 	  HAL_GPIO_WritePin(GPIOA, GPIO_PIN_7, 0);
@@ -597,25 +651,11 @@ void motorDriverTask(void *argument)
 	            speedA = 0;
 	        }
 
-//	        // Logic for Motor B
-//	        if (readValue < 1790) {
-//	            // Set Motor B backward
-//	            HAL_GPIO_WritePin(GPIOA, GPIO_PIN_7, GPIO_PIN_SET);
-//	            HAL_GPIO_WritePin(GPIOB, GPIO_PIN_6, GPIO_PIN_RESET);
-//	            speedB = (1790 - readValue) / 3;
-//	        } else if (readValue > 2220) {
-//	            // Set Motor B forward
-//	            HAL_GPIO_WritePin(GPIOB, GPIO_PIN_6, GPIO_PIN_SET);
-//	            HAL_GPIO_WritePin(GPIOA, GPIO_PIN_7, GPIO_PIN_RESET);
-//	            speedB = (readValue - 2220) / 3;
-//	        } else {
-//	            // Stop Motor B
-//	            speedB = 0;
-//	        }
+//
 
 	        // Update PWM duty cycle for all motors
-	        __HAL_TIM_SET_COMPARE(&htim3, TIM_CHANNEL_3, speedA); // Update for Motor A
-	        __HAL_TIM_SET_COMPARE(&htim3, TIM_CHANNEL_1, speedA); // Update for Motor B
+	        __HAL_TIM_SET_COMPARE(&htim3, TIM_CHANNEL_1, speedA); // Update for Motor A
+	        __HAL_TIM_SET_COMPARE(&htim3, TIM_CHANNEL_3, speedA); // Update for Motor B
 	        // Update PWM for motors C and D as necessary. Example:
 	        // __HAL_TIM_SET_COMPARE(&htim3, TIM_CHANNEL_X, speedC); // For Motor C
 	        // __HAL_TIM_SET_COMPARE(&htim3, TIM_CHANNEL_Y, speedD); // For Motor D
@@ -641,6 +681,27 @@ void rfSignalTask(void *argument)
     osDelay(1);
   }
   /* USER CODE END rfSignalTask */
+}
+
+/**
+  * @brief  Period elapsed callback in non blocking mode
+  * @note   This function is called  when TIM5 interrupt took place, inside
+  * HAL_TIM_IRQHandler(). It makes a direct call to HAL_IncTick() to increment
+  * a global variable "uwTick" used as application time base.
+  * @param  htim : TIM handle
+  * @retval None
+  */
+void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
+{
+  /* USER CODE BEGIN Callback 0 */
+
+  /* USER CODE END Callback 0 */
+  if (htim->Instance == TIM5) {
+    HAL_IncTick();
+  }
+  /* USER CODE BEGIN Callback 1 */
+
+  /* USER CODE END Callback 1 */
 }
 
 /**
